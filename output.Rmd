@@ -1,0 +1,411 @@
+# Loading the packages
+```{r}
+library(tidyverse)
+library(janitor)
+library(ggridges)
+library(rmarkdown)
+```
+
+# Reading the data, cleaning the column names.
+```{r}
+data <- read_csv("train.csv")
+
+data <- clean_names(data)
+data$ms_sub_class <- as.factor(data$ms_sub_class)
+
+```
+
+# A general look at the type of dwelling and the most preferred dwelling.
+```{r}
+data %>%
+  select(ms_sub_class) %>%
+  group_by(ms_sub_class) %>%
+  summarise(total_count = n()) %>%
+ggplot(aes(x = (ms_sub_class),y = total_count)) +  
+  geom_point(fill = "tomato3") +
+  labs(title = "Most preferred dwelling") +
+  xlab("ms_sub_class")
+
+```
+
+# Looking for missing values
+```{r}
+colSums(is.na(data))
+str(data)
+```
+
+# Removing un-necessary columns.
+```{r}
+
+data$id <- NULL
+data$pool_qc <- NULL
+data$fence <- NULL
+data$misc_feature <- NULL
+data$alley <- NULL
+
+```
+
+```{r}
+
+#cols <- c("ms_zoning", "street", "lot_shape", "land_contour", "utilities", "lot_config",
+#          "land_slope", "neighbourhood", "condition1", "condition2", "bldg_type", "house_style",
+#          "overall_qual", "overall_cond", "roof_style", "roof_matl", "exterior1st", "exterior2nd",
+#          "mas_vnr_type", "exter_qual", "exter_cond", "foundation", "bsmt_qual", "bsmt_cond", 
+#         "bsmt_exposure", "bsmt_fin_type1", "bsmt_fin_type2", "heating", "heating_qc", "central_air",
+#         "electrical", "kitchen_qual", "functional", "fireplace_qu", "garage_type", "garage_finish",
+#          "garage_qual", "garage_cond", "paved_drive", "sale_type", "sale_condition")
+```
+
+# Converting columns to factors.
+```{r}
+x <- data %>%
+  select_if(is.character)
+
+length(colnames(x))
+
+y <- data%>%
+  select_if(is.numeric)
+
+colnames(y)
+
+col_as_factors <- c(colnames(x), "overall_qual", "overall_cond")
+
+sum(length(col_as_factors))
+
+data[col_as_factors] <- lapply(data[col_as_factors], factor)
+#str(data)
+glimpse(data)
+```
+
+# price distribution for different zones
+```{r}
+ggplot(data, aes(x = sale_price, y = ms_zoning, fill = ms_zoning)) +
+  geom_density_ridges() +
+  theme_ridges() + 
+  theme(legend.position = "none") +
+  labs(title = "price distribution across various zones") +
+  xlab("sale_price") + ylab("zone")
+
+```
+
+# price distribution
+```{r}
+
+data %>%
+  ggplot( aes(x=sale_price)) +
+  geom_density(fill="#69b3a2", color="#e9ecef", alpha=0.8) +
+  labs(title = "price distribution")
+
+```
+
+# price of different dwellings
+```{r}
+
+ggplot(data, aes(x=ms_sub_class, y=sale_price)) +
+  geom_point() +
+  theme(legend.position="none") +
+  labs(title = "Most priciest dwelling")
+```
+
+# In a given neighborhood which zone is most preferred.
+```{r}
+
+ggplot(data, aes(fill=ms_zoning, y=sale_price, x=neighborhood)) + 
+  geom_bar(position="stack", stat="identity") +
+  theme(axis.text.x = element_text(angle = 90)) +
+  labs(title = "Most preferred neighborhood and it's price range")
+```
+
+# preferred building type in a neighborhood
+```{r}
+ggplot(data, aes(fill=bldg_type, y=sale_price, x=neighborhood)) + 
+  geom_bar(position="stack", stat="identity") +
+  theme(axis.text.x = element_text(angle = 90)) +
+  labs(title = "preferred building type in a neighborhood")
+
+```
+
+# Type of utilities available for each building type
+```{r}
+ggplot(data, aes(fill=utilities, y=sale_price, x=bldg_type)) + 
+  geom_bar(position="stack", stat="identity") +
+  theme(axis.text.x = element_text(angle = 90)) +
+  labs(title = "type of utilities available for each building type")
+```
+
+# General shape of different building types
+```{r}
+
+ggplot(data, aes(fill=lot_shape, y=sale_price, x=bldg_type)) + 
+  geom_bar(position="stack", stat="identity") +
+  theme(axis.text.x = element_text(angle = 90)) +
+  labs(title = "general shape of different building types")
+```
+
+# Flatness level of different building types
+```{r}
+
+ggplot(data, aes(fill=land_contour, y=sale_price, x=bldg_type)) + 
+  geom_bar(position="stack", stat="identity") +
+  theme(axis.text.x = element_text(angle = 90)) +
+  labs(title = "flatness level of different building types")
+
+```
+
+# Type of foundation
+```{r}
+ggplot(data, aes(fill=foundation, y=sale_price, x=bldg_type)) + 
+  geom_bar(position="stack", stat="identity") +
+  theme(axis.text.x = element_text(angle = 90)) +
+  labs(title = "Foundation for different building types")
+```
+
+# Different dwelling types
+```{r}
+
+ggplot(data, aes(fill=bldg_type, y=sale_price, x=house_style)) + 
+  geom_bar(position="stack", stat="identity") +
+  theme(axis.text.x = element_text(angle = 90)) +
+  labs(title = "Most preferred dwelling")
+```
+
+# Type of foundation for different dwellings
+```{r}
+ggplot(data, aes(fill=foundation, y=sale_price, x=house_style)) + 
+  geom_bar(position="stack", stat="identity") +
+  theme(axis.text.x = element_text(angle = 90)) +
+  labs(title = "Foundation type for different dwellings")
+```
+
+# Kind of heating for different dwellings
+```{r}
+ggplot(data, aes(fill=heating, y=sale_price, x=house_style)) + 
+  geom_bar(position="stack", stat="identity") +
+  theme(axis.text.x = element_text(angle = 90))
+
+```
+
+# Kind of heating for different building types
+```{r}
+ggplot(data, aes(fill=heating, y=sale_price, x=bldg_type)) + 
+  geom_bar(position="stack", stat="identity") +
+  theme(axis.text.x = element_text(angle = 90)) +
+  labs(title = "Heating for different building types")
+```
+
+# Air conditioning for different house styles
+```{r}
+
+ggplot(data, aes(fill=central_air, y=sale_price, x=house_style)) + 
+  geom_bar(position="stack", stat="identity") +
+  theme(axis.text.x = element_text(angle = 90))
+```
+
+# Air conditioning for different building types
+```{r}
+
+ggplot(data, aes(fill=central_air, y=sale_price, x=bldg_type)) + 
+  geom_bar(position="stack", stat="identity") +
+  theme(axis.text.x = element_text(angle = 90))
+
+```
+
+# Electrical system for different building types
+```{r}
+
+ggplot(data, aes(fill=electrical, y=sale_price, x=bldg_type)) + 
+  geom_bar(position="stack", stat="identity") +
+  theme(axis.text.x = element_text(angle = 90)) +
+  labs(title = "electrical system for different building types")
+```
+
+# Kitchen quality for different building type
+```{r}
+ggplot(data, aes(fill=kitchen_qual, y=sale_price, x=bldg_type)) + 
+  geom_bar(position="stack", stat="identity") +
+  theme(axis.text.x = element_text(angle = 90)) +
+  labs(title = "kitchen quality for different building types")
+```
+
+# Functionality level of different building type
+```{r}
+
+ggplot(data, aes(fill=functional, y=sale_price, x=bldg_type)) + 
+  geom_bar(position="stack", stat="identity") +
+  theme(axis.text.x = element_text(angle = 90)) +
+  labs(title = "functionality level of different building types")
+```
+
+# Fire place quality for different building type
+```{r}
+ggplot(data, aes(fill=fireplace_qu, y=sale_price, x=bldg_type)) + 
+  geom_bar(position="stack", stat="identity") +
+  theme(axis.text.x = element_text(angle = 90)) +
+  labs(title = "fire place quality for different building type")
+```
+
+# Garage type for different building type
+```{r}
+ggplot(data, aes(fill=garage_type, y=sale_price, x=bldg_type)) + 
+  geom_bar(position="stack", stat="identity") +
+  theme(axis.text.x = element_text(angle = 90)) +
+  labs(title = "garage type for different building type")
+```
+
+# Garage finish for different building type
+```{r}
+ggplot(data, aes(fill=garage_finish, y=sale_price, x=bldg_type)) + 
+  geom_bar(position="stack", stat="identity") +
+  theme(axis.text.x = element_text(angle = 90)) +
+  labs(title = "garage finish for different building type")
+```
+
+# Paved drive for different building type
+```{r}
+ggplot(data, aes(fill=paved_drive, y=sale_price, x=bldg_type)) + 
+  geom_bar(position="stack", stat="identity") +
+  theme(axis.text.x = element_text(angle = 90)) +
+  labs(title = "paved drive for different building type")
+```
+
+# Sale type for different building type
+```{r}
+ggplot(data, aes(fill=sale_type, y=sale_price, x=bldg_type)) + 
+  geom_bar(position="stack", stat="identity") +
+  theme(axis.text.x = element_text(angle = 90)) +
+  labs(title = "sale type for different building type")
+```
+
+# Sale condition for different building type
+```{r}
+ggplot(data, aes(fill=sale_condition, y=sale_price, x=bldg_type)) + 
+  geom_bar(position="stack", stat="identity") +
+  theme(axis.text.x = element_text(angle = 90)) +
+  labs(title = "sale condition for different building type")
+
+```
+
+```{r}
+
+data %>%
+  select(year_built, year_remod_add) %>%
+  arrange(year_built, year_remod_add) %>%
+  filter(year_built >= "1946") %>%
+  ggplot(aes(year_built, year_remod_add))
+  geom_area( fill="#69b3a2", alpha=0.4) +
+  geom_line(color="#69b3a2", size=2) +
+  geom_point(size=3, color="#69b3a2") +
+  theme_ipsum() +
+  ggtitle("Evolution of something")
+
+```
+
+# Therefore from the above observations, houses with single story, double story under residential low density zone with detached single family house with all utilities but without central air conditioning are in high demand.
+
+# Other factors that influence house prices are
+1. Shape of the property --- slightly irregular shape is preferred.
+2. Flatness of the property --- quick and significant rise from street grade to building is preferred.
+3. Foundation --- Brick & Tile, cinder block foundation is preferred.
+4. Type of heating --- Gas forced warm air furnance heating is preferred.
+5. Electrical system --- Standard Circuit Breakers & Romex, Fuse Box over 60 AMP and all Romex wiring (Average) is preferred.
+6. Kitchen quality --- Excellent, good kitchen quality is preferred.
+7. Home functionality --- Typical functionality is preferred.
+8. Garage location --- houses with attached garage is preferred.
+9. Interior finish of the garage --- Rough finished, finished are preferred.
+10. paved driveway --- Dirt/gravel driveway is bit costly than the paved driveway.
+11. type of sale --- warranty deed- conventional type of sale is preferred.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
